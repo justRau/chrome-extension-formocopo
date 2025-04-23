@@ -15,6 +15,80 @@ document.addEventListener('contextmenu', (event) => {
   }
 });
 
+// Listen for keyboard shortcuts
+document.addEventListener('keydown', handleKeyboardShortcut);
+
+// Handler for keyboard shortcuts
+function handleKeyboardShortcut(event) {
+  // Ignore keydowns in input elements and textareas
+  const tagName = document.activeElement.tagName.toLowerCase();
+  if (tagName === 'input' || tagName === 'textarea' || tagName === 'select') {
+    return;
+  }
+
+  // Build the shortcut string based on pressed keys
+  const shortcutParts = [];
+  if (event.altKey) shortcutParts.push('Alt');
+  if (event.ctrlKey) shortcutParts.push('Ctrl');
+  if (event.shiftKey) shortcutParts.push('Shift');
+  if (event.metaKey) shortcutParts.push('Meta');
+
+  // Get the key itself
+  let key = event.key;
+
+  // Map special keys to their common names
+  const keyMap = {
+    ' ': 'Space',
+    'ArrowUp': 'ArrowUp',
+    'ArrowDown': 'ArrowDown',
+    'ArrowLeft': 'ArrowLeft',
+    'ArrowRight': 'ArrowRight',
+    'Enter': 'Enter',
+    'Tab': 'Tab'
+  };
+
+  // For F1-F12 keys
+  if (key.startsWith('F') && !isNaN(parseInt(key.substring(1)))) {
+    // F1-F12 keys are fine as they are
+  }
+  // For letter keys, just take the uppercase letter
+  else if (key.length === 1 && /[a-zA-Z]/.test(key)) {
+    key = key.toUpperCase();
+  }
+  // For special keys, use the mapped name
+  else if (keyMap[key]) {
+    key = keyMap[key];
+  }
+  // For other keys, we don't include them in shortcuts
+  else {
+    return;
+  }
+
+  shortcutParts.push(key);
+
+  // Only process if there's at least one modifier
+  if (shortcutParts.length <= 1) {
+    return;
+  }
+
+  // Construct the shortcut string
+  const shortcutKey = shortcutParts.join('+');
+
+  // Look up if this shortcut is registered
+  chrome.storage.local.get("formShortcuts", (result) => {
+    const shortcuts = result.formShortcuts || {};
+    const presetName = shortcuts[shortcutKey];
+
+    if (presetName) {
+      // Prevent default browser behavior for this shortcut
+      event.preventDefault();
+
+      // Fill the form with the associated preset
+      fillForm(presetName);
+    }
+  });
+}
+
 // Listen for messages from the background script
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "saveForm") {

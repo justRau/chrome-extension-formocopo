@@ -64,11 +64,20 @@ function updateFillFormMenu() {
           contexts: ["all"]
         });
       } else {
-        // Add each preset directly to the root menu
-        Object.keys(presets).forEach(presetName => {
+        // Create an array of preset entries with name and savedAt time
+        const presetEntries = Object.entries(presets).map(([name, data]) => ({
+          name,
+          savedAt: data.savedAt || '1970-01-01T00:00:00.000Z' // Default for presets without timestamp
+        }));
+
+        // Sort by savedAt timestamp, most recent first
+        presetEntries.sort((a, b) => new Date(b.savedAt) - new Date(a.savedAt));
+
+        // Add each preset directly to the root menu, in sorted order
+        presetEntries.forEach(entry => {
           chrome.contextMenus.create({
-            id: "preset-" + presetName,
-            title: "Fill: " + presetName,
+            id: "preset-" + entry.name,
+            title: "Fill: " + entry.name,
             contexts: ["all"]
           });
         });

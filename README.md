@@ -66,3 +66,9 @@ chrome-extensions-cli watch
 - The extension works best when filling forms on the same URL where they were saved
 - When filling forms on different URLs, the extension will try to match fields based on their attributes and position
 - Form presets are saved locally in your browser and are not shared with any external services
+
+## TODO
+- Show nicer toast about copied/pasted
+- Create in-extension page with multiple forms for testing
+- Maybe change copy-picker so that when activated any hovered form gets a border (or everything else is faded a bit) and when clicking, it would pick that form
+- Allow editing preset name
