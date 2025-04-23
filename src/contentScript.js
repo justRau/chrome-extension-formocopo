@@ -137,39 +137,55 @@ function fillForm(presetName) {
         return;
       }
 
+      // Check if the field already has a value
+      const hasExistingValue = () => {
+        if (input.type === 'checkbox' || input.type === 'radio') {
+          return input.checked;
+        } else if (input.tagName.toLowerCase() === 'select') {
+          // For select elements, check if a non-default option is selected
+          return input.selectedIndex > 0 && input.value && input.value.trim() !== '';
+        } else {
+          // For text inputs and textareas
+          return input.value && input.value.trim() !== '';
+        }
+      };
+
       const fieldId = getUniqueFieldId(input);
       const savedField = formData[fieldId];
 
       if (savedField) {
         fieldsFound++;
 
-        // Set the field value based on its type
-        if (input.type === 'checkbox' || input.type === 'radio') {
-          input.checked = savedField.value;
-          if (input.checked) {
+        // Only fill the field if it doesn't already have a value
+        if (!hasExistingValue()) {
+          // Set the field value based on its type
+          if (input.type === 'checkbox' || input.type === 'radio') {
+            input.checked = savedField.value;
+            if (input.checked) {
+              fieldsFilled++;
+              // Dispatch change event
+              input.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+          } else if (input.tagName.toLowerCase() === 'select') {
+            if (input.multiple && Array.isArray(savedField.value)) {
+              // Reset all options first
+              Array.from(input.options).forEach(option => {
+                option.selected = savedField.value.includes(option.value);
+              });
+            } else {
+              input.value = savedField.value;
+            }
             fieldsFilled++;
             // Dispatch change event
             input.dispatchEvent(new Event('change', { bubbles: true }));
-          }
-        } else if (input.tagName.toLowerCase() === 'select') {
-          if (input.multiple && Array.isArray(savedField.value)) {
-            // Reset all options first
-            Array.from(input.options).forEach(option => {
-              option.selected = savedField.value.includes(option.value);
-            });
           } else {
+            // Regular inputs and textareas
             input.value = savedField.value;
+            fieldsFilled++;
+            // Dispatch input and change events
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+            input.dispatchEvent(new Event('change', { bubbles: true }));
           }
-          fieldsFilled++;
-          // Dispatch change event
-          input.dispatchEvent(new Event('change', { bubbles: true }));
-        } else {
-          // Regular inputs and textareas
-          input.value = savedField.value;
-          fieldsFilled++;
-          // Dispatch input and change events
-          input.dispatchEvent(new Event('input', { bubbles: true }));
-          input.dispatchEvent(new Event('change', { bubbles: true }));
         }
       } else {
         // Try to match by name if present
@@ -179,32 +195,35 @@ function fillForm(presetName) {
             if (field.name === input.name) {
               fieldsFound++;
 
-              // Handle field types
-              if (input.type === 'checkbox' || input.type === 'radio') {
-                if (input.type === field.type) {
-                  input.checked = field.value;
-                  if (input.checked) {
+              // Only fill the field if it doesn't already have a value
+              if (!hasExistingValue()) {
+                // Handle field types
+                if (input.type === 'checkbox' || input.type === 'radio') {
+                  if (input.type === field.type) {
+                    input.checked = field.value;
+                    if (input.checked) {
+                      fieldsFilled++;
+                      input.dispatchEvent(new Event('change', { bubbles: true }));
+                    }
+                  }
+                } else if (input.tagName.toLowerCase() === 'select') {
+                  if (field.type.startsWith('select')) {
+                    if (input.multiple && Array.isArray(field.value)) {
+                      Array.from(input.options).forEach(option => {
+                        option.selected = field.value.includes(option.value);
+                      });
+                    } else {
+                      input.value = field.value;
+                    }
                     fieldsFilled++;
                     input.dispatchEvent(new Event('change', { bubbles: true }));
                   }
-                }
-              } else if (input.tagName.toLowerCase() === 'select') {
-                if (field.type.startsWith('select')) {
-                  if (input.multiple && Array.isArray(field.value)) {
-                    Array.from(input.options).forEach(option => {
-                      option.selected = field.value.includes(option.value);
-                    });
-                  } else {
-                    input.value = field.value;
-                  }
+                } else {
+                  input.value = field.value;
                   fieldsFilled++;
+                  input.dispatchEvent(new Event('input', { bubbles: true }));
                   input.dispatchEvent(new Event('change', { bubbles: true }));
                 }
-              } else {
-                input.value = field.value;
-                fieldsFilled++;
-                input.dispatchEvent(new Event('input', { bubbles: true }));
-                input.dispatchEvent(new Event('change', { bubbles: true }));
               }
 
               break; // Break after the first match
