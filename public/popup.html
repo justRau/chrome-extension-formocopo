@@ -1,32 +1,88 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>My Chrome Extension</title>
-    <link rel="stylesheet" href="popup.css" />
-  </head>
-  <body>
-    <div class="app">
-      <p class="counter-label">Counter</p>
-      <div id="counter" class="counter"></div>
-      <div class="button-container">
-        <button id="decrementBtn" class="button">-</button>
-        <button id="incrementBtn" class="button">+</button>
-      </div>
+<html>
+<head>
+  <title>Formocopo</title>
+  <style>
+    body {
+      width: 280px;
+      padding: 15px;
+      font-family: Arial, sans-serif;
+    }
+    h1 {
+      font-size: 18px;
+      margin-top: 0;
+      color: #4285f4;
+    }
+    .preset-list {
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    .preset-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid #eee;
+    }
+    .preset-name {
+      flex-grow: 1;
+      max-width: 160px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .preset-date {
+      font-size: 10px;
+      color: #666;
+    }
+    .action-buttons {
+      display: flex;
+      gap: 5px;
+    }
+    button {
+      background: #4285f4;
+      color: white;
+      border: none;
+      padding: 5px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 11px;
+    }
+    button:hover {
+      background: #2b6abc;
+    }
+    button.delete {
+      background: #f44336;
+    }
+    button.delete:hover {
+      background: #d32f2f;
+    }
+    .no-presets {
+      padding: 20px 0;
+      text-align: center;
+      color: #666;
+    }
+    .instructions {
+      font-size: 12px;
+      margin-top: 15px;
+      padding-top: 10px;
+      border-top: 1px solid #eee;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <h1>Formocopo</h1>
+  <div class="preset-list" id="presetList">
+    <!-- Presets will be loaded here -->
+  </div>
 
-      <hr class="divider" />
+  <div class="instructions">
+    <p><strong>How to use:</strong></p>
+    <p>1. Right-click on any form field and select "Save form as preset"</p>
+    <p>2. To fill a form, right-click and select "Fill form with preset" then choose a preset</p>
+  </div>
 
-      <p class="title">Chrome Extension is Ready!</p>
-      <p class="subtitle">Start by updating <code>popup.html</code></p>
-    </div>
-
-    <script src="popup.js"></script>
-
-    <!--
-      This HTML file opens when you click on icon from the toolbar.
-
-      To begin the development, run `npm run watch`.
-      To create a production bundle, use `npm run build`.
-    -->
-  </body>
+  <script src="popup.js"></script>
+</body>
 </html>

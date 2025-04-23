@@ -1,112 +1,111 @@
 'use strict';
 
-import './popup.css';
+// Load presets when popup opens
+document.addEventListener('DOMContentLoaded', () => {
+  loadPresets();
+});
 
-(function () {
-  // We will make use of Storage API to get and store `count` value
-  // More information on Storage API can we found at
-  // https://developer.chrome.com/extensions/storage
+// Function to load presets
+function loadPresets() {
+  const presetListElement = document.getElementById('presetList');
 
-  // To get storage access, we have to mention it in `permissions` property of manifest.json file
-  // More information on Permissions can we found at
-  // https://developer.chrome.com/extensions/declare_permissions
-  const counterStorage = {
-    get: (cb) => {
-      chrome.storage.sync.get(['count'], (result) => {
-        cb(result.count);
-      });
-    },
-    set: (value, cb) => {
-      chrome.storage.sync.set(
-        {
-          count: value,
-        },
-        () => {
-          cb();
-        }
-      );
-    },
-  };
+  // Clear current list
+  presetListElement.innerHTML = '';
 
-  function setupCounter(initialValue = 0) {
-    document.getElementById('counter').innerHTML = initialValue;
+  // Get all saved presets
+  chrome.storage.local.get("formPresets", (result) => {
+    const presets = result.formPresets || {};
 
-    document.getElementById('incrementBtn').addEventListener('click', () => {
-      updateCounter({
-        type: 'INCREMENT',
-      });
-    });
-
-    document.getElementById('decrementBtn').addEventListener('click', () => {
-      updateCounter({
-        type: 'DECREMENT',
-      });
-    });
-  }
-
-  function updateCounter({ type }) {
-    counterStorage.get((count) => {
-      let newCount;
-
-      if (type === 'INCREMENT') {
-        newCount = count + 1;
-      } else if (type === 'DECREMENT') {
-        newCount = count - 1;
-      } else {
-        newCount = count;
-      }
-
-      counterStorage.set(newCount, () => {
-        document.getElementById('counter').innerHTML = newCount;
-
-        // Communicate with content script of
-        // active tab by sending a message
-        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-          const tab = tabs[0];
-
-          chrome.tabs.sendMessage(
-            tab.id,
-            {
-              type: 'COUNT',
-              payload: {
-                count: newCount,
-              },
-            },
-            (response) => {
-              console.log('Current count value passed to contentScript file');
-            }
-          );
-        });
-      });
-    });
-  }
-
-  function restoreCounter() {
-    // Restore count value
-    counterStorage.get((count) => {
-      if (typeof count === 'undefined') {
-        // Set counter value as 0
-        counterStorage.set(0, () => {
-          setupCounter(0);
-        });
-      } else {
-        setupCounter(count);
-      }
-    });
-  }
-
-  document.addEventListener('DOMContentLoaded', restoreCounter);
-
-  // Communicate with background file by sending a message
-  chrome.runtime.sendMessage(
-    {
-      type: 'GREETINGS',
-      payload: {
-        message: 'Hello, my name is Pop. I am from Popup.',
-      },
-    },
-    (response) => {
-      console.log(response.message);
+    if (Object.keys(presets).length === 0) {
+      // No presets found
+      presetListElement.innerHTML = `
+        <div class="no-presets">
+          No form presets saved yet.<br>
+          Right-click on a form to save one.
+        </div>
+      `;
+      return;
     }
-  );
-})();
+
+    // Sort presets by savedAt date (newest first)
+    const sortedPresets = Object.entries(presets)
+      .sort(([, a], [, b]) => new Date(b.savedAt) - new Date(a.savedAt));
+
+    // Create list items for each preset
+    sortedPresets.forEach(([presetName, preset]) => {
+      const presetItem = document.createElement('div');
+      presetItem.className = 'preset-item';
+
+      // Format date
+      const date = new Date(preset.savedAt);
+      const formattedDate = `${date.toLocaleDateString()} ${date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
+
+      // Create HTML for the preset item
+      presetItem.innerHTML = `
+        <div class="preset-info">
+          <div class="preset-name" title="${presetName}">${presetName}</div>
+          <div class="preset-date">${formattedDate}</div>
+        </div>
+        <div class="action-buttons">
+          <button class="fill" data-preset="${presetName}">Fill</button>
+          <button class="delete" data-preset="${presetName}">Delete</button>
+        </div>
+      `;
+
+      presetListElement.appendChild(presetItem);
+    });
+
+    // Add event listeners for the buttons
+    addButtonEventListeners();
+  });
+}
+
+// Add event listeners to fill and delete buttons
+function addButtonEventListeners() {
+  // Fill button event listeners
+  document.querySelectorAll('button.fill').forEach(button => {
+    button.addEventListener('click', async () => {
+      const presetName = button.getAttribute('data-preset');
+
+      // Get active tab
+      const tabs = await chrome.tabs.query({active: true, currentWindow: true});
+      if (tabs.length > 0) {
+        // Send message to content script to fill the form
+        chrome.tabs.sendMessage(tabs[0].id, {
+          action: "fillForm",
+          presetName: presetName
+        });
+
+        // Close the popup
+        window.close();
+      }
+    });
+  });
+
+  // Delete button event listeners
+  document.querySelectorAll('button.delete').forEach(button => {
+    button.addEventListener('click', () => {
+      const presetName = button.getAttribute('data-preset');
+
+      if (confirm(`Are you sure you want to delete the preset "${presetName}"?`)) {
+        // Get all presets, remove the selected one, and save back
+        chrome.storage.local.get("formPresets", (result) => {
+          const presets = result.formPresets || {};
+
+          if (presets[presetName]) {
+            delete presets[presetName];
+
+            // Save back to storage
+            chrome.storage.local.set({ formPresets: presets }, () => {
+              // Update context menus
+              chrome.runtime.sendMessage({ action: "presetSaved" });
+
+              // Reload the list
+              loadPresets();
+            });
+          }
+        });
+      }
+    });
+  });
+}
