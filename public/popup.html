@@ -24,8 +24,12 @@
       padding: 8px 0;
       border-bottom: 1px solid #eee;
     }
-    .preset-name {
+    .preset-info {
       flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    .preset-name {
       max-width: 160px;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -34,6 +38,31 @@
     .preset-date {
       font-size: 10px;
       color: #666;
+    }
+    .shortcut-key {
+      display: inline-block;
+      padding: 2px 4px;
+      background-color: #f5f5f5;
+      border: 1px solid #ddd;
+      border-radius: 3px;
+      font-family: monospace;
+      font-size: 10px;
+      margin-top: 2px;
+      cursor: pointer;
+    }
+    .shortcut-key.empty {
+      color: #999;
+      border-style: dashed;
+      font-style: italic;
+    }
+    .shortcut-input {
+      padding: 2px 4px;
+      border: 1px solid #ddd;
+      border-radius: 3px;
+      font-family: monospace;
+      font-size: 10px;
+      width: 80px;
+      margin-top: 2px;
     }
     .action-buttons {
       display: flex;
@@ -69,105 +98,25 @@
       border-top: 1px solid #eee;
       color: #666;
     }
-    .tabs {
-      display: flex;
-      margin-bottom: 10px;
-      border-bottom: 1px solid #eee;
-    }
-    .tab {
-      padding: 8px 15px;
-      cursor: pointer;
-      border-bottom: 2px solid transparent;
-    }
-    .tab.active {
-      border-bottom-color: #4285f4;
-      color: #4285f4;
-      font-weight: bold;
-    }
-    .tab-content {
-      display: none;
-    }
-    .tab-content.active {
-      display: block;
-    }
-    .shortcut-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 8px 0;
-      border-bottom: 1px solid #eee;
-    }
-    .shortcut-key {
-      padding: 3px 5px;
-      background-color: #f5f5f5;
-      border: 1px solid #ddd;
-      border-radius: 3px;
-      font-family: monospace;
-      margin-right: 10px;
-    }
-    .shortcut-input {
-      padding: 5px;
-      width: 100px;
-      border: 1px solid #ddd;
-      border-radius: 3px;
-    }
-    .shortcut-preset-select {
-      padding: 5px;
-      width: 140px;
-      border: 1px solid #ddd;
-      border-radius: 3px;
-    }
-    .shortcut-row {
-      display: flex;
-      align-items: center;
-      margin-bottom: 10px;
-      padding: 8px;
-      background-color: #f9f9f9;
-      border-radius: 4px;
-    }
-    .shortcut-add {
-      margin-top: 10px;
+    .shortcut-hint {
+      font-size: 11px;
+      color: #666;
+      margin-top: 5px;
     }
   </style>
 </head>
 <body>
   <h1>Formocopo</h1>
 
-  <div class="tabs">
-    <div class="tab active" data-tab="presets">Presets</div>
-    <div class="tab" data-tab="shortcuts">Shortcuts</div>
-  </div>
-
-  <div class="tab-content active" id="presets-tab">
-    <div class="preset-list" id="presetList">
-      <!-- Presets will be loaded here -->
-    </div>
-  </div>
-
-  <div class="tab-content" id="shortcuts-tab">
-    <div id="shortcutsList">
-      <!-- Shortcuts will be loaded here -->
-    </div>
-    <div class="shortcut-add">
-      <div class="shortcut-row">
-        <input type="text" id="newShortcutKey" class="shortcut-input" placeholder="Press keys..." readonly />
-        <select id="newShortcutPreset" class="shortcut-preset-select">
-          <option value="">Select preset</option>
-          <!-- Preset options will be loaded here -->
-        </select>
-        <button id="addShortcut">Add</button>
-      </div>
-      <div style="font-size: 11px; color: #666; margin-top: 5px;">
-        Press a combination of modifier keys (Ctrl, Alt, Shift) + a letter, number, or function key
-      </div>
-    </div>
+  <div class="preset-list" id="presetList">
+    <!-- Presets will be loaded here -->
   </div>
 
   <div class="instructions">
     <p><strong>How to use:</strong></p>
     <p>1. Right-click on any form field and select "Save form"</p>
-    <p>2. To fill a form, right-click and select a saved preset</p>
-    <p>3. Set keyboard shortcuts for quick form filling</p>
+    <p>2. To fill a form, right-click and select a saved preset or use a keyboard shortcut</p>
+    <p>3. Click on "Set shortcut" to assign a keyboard shortcut to a preset</p>
   </div>
 
   <script src="popup.js"></script>
