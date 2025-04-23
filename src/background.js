@@ -3,16 +3,13 @@ chrome.runtime.onInstalled.addListener(() => {
   // Create "Save Form" context menu item
   chrome.contextMenus.create({
     id: "saveForm",
-    title: "Save form as preset",
+    title: "Save form",
     contexts: ["all"]
   });
 
-  // Create "Fill Form" parent menu
-  chrome.contextMenus.create({
-    id: "fillForm",
-    title: "Fill form with preset",
-    contexts: ["all"]
-  });
+  // No longer need the "Fill Form" parent menu
+  // We'll add presets directly at the root level
+  updateFillFormMenu();
 });
 
 // Listen for context menu clicks
@@ -36,24 +33,25 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 });
 
-// Function to update the "Fill Form" context menu with available presets
+// Function to update the context menu with available presets
 function updateFillFormMenu() {
   // First remove existing preset items
   chrome.contextMenus.removeAll(() => {
-    // Recreate the parent menu items
+    // Recreate the "Save Form" menu item
     chrome.contextMenus.create({
       id: "saveForm",
-      title: "Save form as preset",
+      title: "Save form",
       contexts: ["all"]
     });
 
+    // Add a separator after "Save Form"
     chrome.contextMenus.create({
-      id: "fillForm",
-      title: "Fill form with preset",
+      id: "separator",
+      type: "separator",
       contexts: ["all"]
     });
 
-    // Get saved presets and add them to the menu
+    // Get saved presets and add them to the root menu
     chrome.storage.local.get("formPresets", (result) => {
       const presets = result.formPresets || {};
 
@@ -61,18 +59,16 @@ function updateFillFormMenu() {
         // If no presets, add a disabled item
         chrome.contextMenus.create({
           id: "noPresets",
-          title: "No presets saved",
-          parentId: "fillForm",
+          title: "No presets available",
           enabled: false,
           contexts: ["all"]
         });
       } else {
-        // Add each preset as a submenu item
+        // Add each preset directly to the root menu
         Object.keys(presets).forEach(presetName => {
           chrome.contextMenus.create({
             id: "preset-" + presetName,
-            title: presetName,
-            parentId: "fillForm",
+            title: "Fill: " + presetName,
             contexts: ["all"]
           });
         });

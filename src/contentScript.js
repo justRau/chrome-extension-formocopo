@@ -76,8 +76,11 @@ function saveForm() {
     }
   });
 
+  // Generate a suggested preset name
+  const suggestedName = generatePresetName(selectedForm);
+
   // Prompt user for preset name
-  const presetName = prompt("Enter a name for this form preset:", "Preset " + new Date().toLocaleString());
+  const presetName = prompt("Enter a name for this form preset:", suggestedName);
 
   if (!presetName) {
     // User cancelled the prompt
@@ -272,4 +275,43 @@ function getUniqueFieldId(element) {
   }
 
   return id;
+}
+
+// Helper function to generate intelligent preset names
+function generatePresetName(form) {
+  // Check for headings inside the form
+  for (let i = 1; i <= 7; i++) {
+    const headings = form.querySelectorAll(`h${i}`);
+    if (headings.length > 0) {
+      const headingText = headings[0].textContent.trim();
+      if (headingText) {
+        return headingText;
+      }
+    }
+  }
+
+  // Check for headings in the same parent as the form
+  if (form.parentElement) {
+    for (let i = 1; i <= 7; i++) {
+      const headings = form.parentElement.querySelectorAll(`h${i}`);
+      if (headings.length > 0) {
+        // Filter out headings that are inside other forms to avoid confusion
+        const relevantHeadings = Array.from(headings).filter(heading => {
+          const closestForm = heading.closest('form');
+          return !closestForm || closestForm === form;
+        });
+
+        if (relevantHeadings.length > 0) {
+          const headingText = relevantHeadings[0].textContent.trim();
+          if (headingText) {
+            return headingText;
+          }
+        }
+      }
+    }
+  }
+
+  // Fallback to window title
+  const title = document.title.trim();
+  return title || `Preset ${new Date().toLocaleString()}`;
 }
