@@ -72,3 +72,4 @@ chrome-extensions-cli watch
 - Create in-extension page with multiple forms for testing
 - Maybe change copy-picker so that when activated any hovered form gets a border (or everything else is faded a bit) and when clicking, it would pick that form
 - Allow editing preset name
+- Remove check on which domain preset was saved before
